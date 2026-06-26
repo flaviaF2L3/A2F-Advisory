@@ -227,4 +227,3 @@ Depois do lançamento, siga essa sequência para construir autoridade:
 - **Link na bio:** WhatsApp ou formulário de contato
 - **Foto de perfil:** Logo A2F em fundo azul #002C58
 - **Destaques:** crie desde o início — "Serviços", "Sobre nós", "Dicas"
-```
