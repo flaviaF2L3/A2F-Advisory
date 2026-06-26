@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2F Advisory — Gerador de Posts Instagram</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --azul: #002C58;
+    --azul-medio: #004080;
+    --dourado: #B88917;
+    --dourado-claro: #D4A832;
+    --branco: #FFFFFF;
+    --cinza-claro: #F4F6F9;
+    --cinza: #8A9BB0;
+    --texto: #1A1A2E;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--cinza-claro);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--azul);
+    color: var(--branco);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 12px rgba(0,44,88,0.25);
+  }
+
+  .logo-mark {
+    width: 42px; height: 42px;
+    background: var(--dourado);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 16px; color: var(--azul);
+    letter-spacing: -1px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 700; }
+  header p { font-size: 12px; color: var(--dourado-claro); margin-top: 2px; }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  /* PAINEL ESQUERDO */
+  .panel {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 16px rgba(0,44,88,0.08);
+    position: sticky;
+    top: 24px;
+  }
+
+  .panel h2 {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cinza);
+    margin-bottom: 20px;
+  }
+
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--azul);
+    margin-bottom: 8px;
+  }
+
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #D8E2F0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--texto);
+    background: #FAFBFE;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--azul-medio);
+    background: white;
+  }
+
+  .field textarea { resize: vertical; min-height: 72px; }
+
+  .tags-row {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+  }
+
+  .tag {
+    background: #EEF2FA;
+    color: var(--azul);
+    border: none;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .tag:hover, .tag.active { background: var(--azul); color: white; }
+
+  .btn-gerar {
+    width: 100%;
+    padding: 14px;
+    background: var(--dourado);
+    color: var(--azul);
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+
+  .btn-gerar:hover { background: var(--dourado-claro); transform: translateY(-1px); }
+  .btn-gerar:active { transform: translateY(0); }
+
+  /* PAINEL DIREITO */
+  .output { display: flex; flex-direction: column; gap: 24px; }
+
+  .preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .preview-header h2 { font-size: 16px; color: var(--azul); font-weight: 700; }
+  .slide-counter { font-size: 13px; color: var(--cinza); font-weight: 600; }
+
+  /* CAROUSEL */
+  .carousel-wrap {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 16px rgba(0,44,88,0.08);
+  }
+
+  .carousel-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .nav-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--azul);
+    background: transparent;
+    color: var(--azul);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .nav-btn:hover { background: var(--azul); color: white; }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+  .dots { display: flex; gap: 6px; }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #D8E2F0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .dot.active { background: var(--dourado); }
+
+  /* SLIDE */
+  .slide-frame {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* TEMAS DE SLIDE */
+  .slide-azul {
+    background: var(--azul);
+    color: white;
+  }
+
+  .slide-branco {
+    background: white;
+    color: var(--texto);
+    border: 1.5px solid #E8EEF8;
+  }
+
+  .slide-dourado {
+    background: linear-gradient(135deg, var(--azul) 0%, #004080 100%);
+    color: white;
+  }
+
+  .slide-inner {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-bg-number {
+    position: absolute;
+    right: -10px; bottom: -20px;
+    font-size: 120px;
+    font-weight: 900;
+    opacity: 0.06;
+    line-height: 1;
+    color: white;
+    pointer-events: none;
+  }
+
+  .slide-number {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 10px;
+  }
+
+  .slide-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dourado);
+    margin-bottom: 8px;
+  }
+
+  .slide-title {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.25;
+    margin-bottom: 16px;
+  }
+
+  .slide-title .gold { color: var(--dourado); }
+
+  .slide-body {
+    font-size: 13px;
+    line-height: 1.65;
+    opacity: 0.88;
+  }
+
+  .slide-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+  .slide-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .slide-list li .icon {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 900;
+    margin-top: 1px;
+  }
+
+  .icon-check { background: var(--dourado); color: var(--azul); }
+  .icon-cross { background: #FF4D4D22; color: #FF4D4D; }
+  .icon-arrow { background: #B8891722; color: var(--dourado); }
+
+  .slide-footer {
+    background: rgba(0,0,0,0.15);
+    padding: 10px 32px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .slide-footer-light {
+    background: #F4F6F9;
+    padding: 10px 32px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--cinza);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-logo { color: var(--dourado); font-weight: 900; }
+
+  /* COPY BOX */
+  .copy-section {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 16px rgba(0,44,88,0.08);
+  }
+
+  .copy-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cinza);
+    margin-bottom: 14px;
+  }
+
+  .copy-box {
+    background: #FAFBFE;
+    border: 1.5px solid #E8EEF8;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--texto);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 10px;
+    min-height: 60px;
+  }
+
+  .btn-copy {
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-copy:hover { background: var(--azul-medio); }
+  .btn-copy.copied { background: #28A745; }
+
+  .hashtags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .hashtag {
+    background: #EEF2FA;
+    color: var(--azul);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 2px 16px rgba(0,44,88,0.08);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; color: var(--azul); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; color: var(--cinza); }
+
+  @media (max-width: 780px) {
+    .container { grid-template-columns: 1fr; }
+    .panel { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">A2F</div>
+  <div>
+    <h1>Gerador de Posts — Instagram</h1>
+    <p>A2F Advisory · Consultoria Financeira Estratégica</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- PAINEL DE CONFIGURAÇÃO -->
+  <div class="panel">
+    <h2>Configure seu post</h2>
+
+    <div class="field">
+      <label>Tema do post</label>
+      <input type="text" id="tema" placeholder="Ex: Fluxo de Caixa, DRE, KPIs..." />
+    </div>
+
+    <div class="field">
+      <label>Sugestões rápidas</label>
+      <div class="tags-row" id="sugestoes">
+        <button class="tag" onclick="setTema(this, 'Fluxo de Caixa')">Fluxo de Caixa</button>
+        <button class="tag" onclick="setTema(this, 'DRE')">DRE</button>
+        <button class="tag" onclick="setTema(this, 'KPIs Financeiros')">KPIs</button>
+        <button class="tag" onclick="setTema(this, 'Orçamento Empresarial')">Orçamento</button>
+        <button class="tag" onclick="setTema(this, 'Margem de Lucro')">Margem de Lucro</button>
+        <button class="tag" onclick="setTema(this, 'Planejamento Financeiro')">Planejamento</button>
+        <button class="tag" onclick="setTema(this, 'Balanço Patrimonial')">Balanço Patrimonial</button>
+        <button class="tag" onclick="setTema(this, 'Governança Financeira')">Governança</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Pilar A2F</label>
+      <select id="pilar">
+        <option value="estrategia">01 · Estratégia</option>
+        <option value="solucoes">02 · Soluções Financeiras</option>
+        <option value="inteligencia">03 · Inteligência Financeira</option>
+        <option value="geral">Institucional / Geral</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Formato</label>
+      <select id="formato">
+        <option value="carrossel">Carrossel (6 slides)</option>
+        <option value="carrossel8">Carrossel completo (8 slides)</option>
+        <option value="card">Card único</option>
+        <option value="dica">Dica rápida (3 slides)</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Informação extra (opcional)</label>
+      <textarea id="extra" placeholder="Algum dado, estatística ou detalhe específico que queira incluir..."></textarea>
+    </div>
+
+    <button class="btn-gerar" onclick="gerarPost()">✦ Gerar Post</button>
+  </div>
+
+  <!-- SAÍDA -->
+  <div class="output" id="output">
+    <div class="empty-state">
+      <div class="empty-icon">📱</div>
+      <h3>Pronto para criar</h3>
+      <p>Configure o tema e clique em Gerar Post para ver o preview do carrossel com copy e hashtags.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── DADOS ──────────────────────────────────────────────────────────────────
+
+const PILARES = {
+  estrategia: {
+    nome: 'Estratégia',
+    numero: '01',
+    servicos: 'Fluxo de Caixa · Orçamento · Forecast',
+    cor: 'azul'
+  },
+  solucoes: {
+    nome: 'Soluções Financeiras',
+    numero: '02',
+    servicos: 'DRE · Balanço Patrimonial · Diagnóstico',
+    cor: 'azul'
+  },
+  inteligencia: {
+    nome: 'Inteligência Financeira',
+    numero: '03',
+    servicos: 'KPIs · Indicadores · Governança Financeira',
+    cor: 'azul'
+  },
+  geral: {
+    nome: 'A2F Advisory',
+    numero: '',
+    servicos: 'Estratégia · Soluções · Inteligência Financeira',
+    cor: 'dourado'
+  }
+};
+
+const HASHTAGS_BASE = [
+  '#A2FAdvisory', '#ConsultoriaFinanceira', '#PlanejamentoFinanceiro',
+  '#GestaoFinanceira', '#FPA', '#Controladoria', '#InteligenciaFinanceira',
+  '#EstrategiaFinanceira', '#FinancasEmpresariais', '#GestaoDeNegocios'
+];
+
+const HASHTAGS_TEMA = {
+  'Fluxo de Caixa': ['#FluxoDeCaixa', '#CashFlow', '#GestaoDeFluxoDeCaixa', '#Tesouraria'],
+  'DRE': ['#DRE', '#DemonstrativoDeResultado', '#ResultadoFinanceiro', '#Contabilidade'],
+  'KPIs Financeiros': ['#KPIs', '#IndicadoresFinanceiros', '#Metricas', '#Dashboard'],
+  'Orçamento Empresarial': ['#OrcamentoEmpresarial', '#Budget', '#Planejamento', '#Forecast'],
+  'Margem de Lucro': ['#MargemDeLucro', '#Rentabilidade', '#Lucratividade', '#ResultadoEmpresarial'],
+  'Planejamento Financeiro': ['#PlanejamentoFinanceiro', '#Forecast', '#MetasFinanceiras', '#Crescimento'],
+  'Balanço Patrimonial': ['#BalancoPatrimonial', '#Contabilidade', '#PatrimonioLiquido', '#Ativo'],
+  'Governança Financeira': ['#GovernancaFinanceira', '#Compliance', '#ControleInterno', '#Transparencia']
+};
+
+// ─── TEMPLATES DE CONTEÚDO ───────────────────────────────────────────────────
+
+function gerarConteudo(tema, pilar, extra) {
+  const p = PILARES[pilar];
+  const extraTexto = extra ? `\n\n💡 ${extra}` : '';
+
+  const templates = {
+    problema: [
+      `Sua empresa ainda toma decisões financeiras sem dados confiáveis?`,
+      `Você sabe qual é a situação real do seu caixa hoje?`,
+      `Já parou para calcular quanto dinheiro sua empresa está perdendo por falta de ${tema}?`
+    ],
+    impacto: [
+      `A falta de ${tema} estruturado pode custar muito mais do que parece.`,
+      `Empresas que dominam ${tema} crescem com muito mais segurança e previsibilidade.`,
+      `Quando ${tema} é bem feito, a tomada de decisão deixa de ser no feeling.`
+    ],
+    o_que_e: [
+      `${tema} é o conjunto de práticas que permitem à empresa visualizar, controlar e projetar suas finanças.`,
+      `${tema} transforma dados brutos em informação gerencial — a base de qualquer decisão estratégica.`,
+      `Com ${tema} bem estruturado, o gestor sai do operacional e passa a olhar o negócio de cima.`
+    ],
+    como_a2f: [
+      `Na A2F, estruturamos ${tema} de forma personalizada para cada negócio — sem fórmula pronta.`,
+      `Nossa abordagem de ${tema} combina metodologia com a realidade do seu negócio.`,
+      `A A2F implementa ${tema} do zero até o dashboard executivo, com acompanhamento contínuo.`
+    ],
+    resultados: [
+      'Previsibilidade de caixa', 'Decisões baseadas em dados', 'Redução de desperdícios',
+      'Visibilidade do resultado real', 'Crescimento sustentável'
+    ],
+    sinais: [
+      'Você não sabe quanto vai sobrar no caixa no mês que vem',
+      'Suas planilhas ninguém entende além de você',
+      'O lucro some mas o dinheiro não aparece',
+      'Você toma decisões no feeling, não nos números',
+      'Seu orçamento fica no papel e nunca vira realidade'
+    ]
+  };
+
+  return { templates, p, extraTexto, tema };
+}
+
+// ─── GERADOR DE SLIDES ───────────────────────────────────────────────────────
+
+function criarSlides(tema, pilar, formato, extra) {
+  const { templates, p, extraTexto } = gerarConteudo(tema, pilar, extra);
+  const sinais = templates.sinais;
+  const resultados = templates.resultados;
+
+  const slidesCapa = [
+    {
+      tema: 'azul',
+      tipo: 'capa',
+      eyebrow: p.nome + (p.numero ? ` · Pilar ${p.numero}` : ''),
+      titulo: tema,
+      subtitulo: p.servicos,
+      isFirst: true
+    }
+  ];
+
+  const slideProblema = {
+    tema: 'branco',
+    tipo: 'lista-cross',
+    eyebrow: 'O problema',
+    titulo: templates.problema[Math.floor(Math.random() * templates.problema.length)],
+    itens: sinais.slice(0, 4)
+  };
+
+  const slideOQueE = {
+    tema: 'azul',
+    tipo: 'texto',
+    numero: '01',
+    eyebrow: 'O que é',
+    titulo: tema,
+    corpo: templates.o_que_e[Math.floor(Math.random() * templates.o_que_e.length)] + extraTexto
+  };
+
+  const slideImpacto = {
+    tema: 'branco',
+    tipo: 'texto',
+    eyebrow: 'Por que importa',
+    titulo: 'O impacto no seu negócio',
+    corpo: templates.impacto[Math.floor(Math.random() * templates.impacto.length)]
+  };
+
+  const slideResultados = {
+    tema: 'azul',
+    tipo: 'lista-check',
+    eyebrow: 'Com ' + tema + ' estruturado',
+    titulo: 'O que você conquista:',
+    itens: resultados.slice(0, 5)
+  };
+
+  const slideA2F = {
+    tema: 'branco',
+    tipo: 'texto',
+    eyebrow: 'Como a A2F faz',
+    titulo: 'Nossa abordagem',
+    corpo: templates.como_a2f[Math.floor(Math.random() * templates.como_a2f.length)]
+  };
+
+  const slidePilar = {
+    tema: 'azul',
+    tipo: 'pilar',
+    numero: p.numero,
+    titulo: p.nome,
+    servicos: p.servicos
+  };
+
+  const slideCTA = {
+    tema: 'dourado',
+    tipo: 'cta',
+    titulo: 'Vamos conversar?',
+    corpo: 'Transformamos desafios financeiros em oportunidades de crescimento.',
+    rodape: 'Link na bio · WhatsApp'
+  };
+
+  if (formato === 'card') {
+    return [slidesCapa[0]];
+  } else if (formato === 'dica') {
+    return [slidesCapa[0], slideProblema, slideCTA];
+  } else if (formato === 'carrossel') {
+    return [slidesCapa[0], slideProblema, slideOQueE, slideResultados, slideA2F, slideCTA];
+  } else {
+    return [slidesCapa[0], slideProblema, slideOQueE, slideImpacto, slideResultados, slidePilar, slideA2F, slideCTA];
+  }
+}
+
+// ─── RENDERIZAÇÃO DE SLIDES ──────────────────────────────────────────────────
+
+function renderSlide(slide) {
+  const temaBg = {
+    azul: 'slide-azul',
+    branco: 'slide-branco',
+    dourado: 'slide-dourado'
+  }[slide.tema];
+
+  const footerClass = slide.tema === 'branco' ? 'slide-footer-light' : 'slide-footer';
+
+  let inner = '';
+
+  if (slide.tipo === 'capa') {
+    inner = `
+      <div class="slide-inner" style="justify-content:center; text-align:center; padding: 28px;">
+        <div class="slide-eyebrow">${slide.eyebrow}</div>
+        <div class="slide-title" style="font-size:28px;">${slide.titulo}</div>
+        <div class="slide-body" style="font-size:12px; margin-top:8px; letter-spacing:1px; text-transform:uppercase; opacity:0.7;">${slide.subtitulo}</div>
+        ${slide.isFirst ? '<div style="margin-top:20px; font-size:11px; opacity:0.5;">Deslize para ver →</div>' : ''}
+      </div>`;
+  } else if (slide.tipo === 'lista-cross') {
+    const itens = slide.itens.map(i =>
+      `<li><span class="icon icon-cross">✕</span><span>${i}</span></li>`
+    ).join('');
+    inner = `
+      <div class="slide-inner">
+        <div class="slide-eyebrow" style="color:${slide.tema === 'branco' ? 'var(--dourado)' : 'var(--dourado)'}">${slide.eyebrow}</div>
+        <div class="slide-title" style="color:var(--azul); font-size:16px;">${slide.titulo}</div>
+        <ul class="slide-list" style="margin-top:12px; color:var(--texto);">${itens}</ul>
+      </div>`;
+  } else if (slide.tipo === 'lista-check') {
+    const itens = slide.itens.map(i =>
+      `<li><span class="icon icon-check">✓</span><span>${i}</span></li>`
+    ).join('');
+    inner = `
+      <div class="slide-inner">
+        <div class="slide-eyebrow">${slide.eyebrow}</div>
+        <div class="slide-title" style="font-size:17px;">${slide.titulo}</div>
+        <ul class="slide-list" style="margin-top:12px;">${itens}</ul>
+        <div class="slide-bg-number">✓</div>
+      </div>`;
+  } else if (slide.tipo === 'texto') {
+    inner = `
+      <div class="slide-inner">
+        ${slide.numero ? `<div class="slide-number" style="color:var(--dourado)">${slide.numero}</div>` : ''}
+        <div class="slide-eyebrow">${slide.eyebrow}</div>
+        <div class="slide-title" style="font-size:${slide.tema === 'branco' ? 'var(--azul)' : 'white'}; font-size:18px;">${slide.titulo}</div>
+        <div class="slide-body" style="${slide.tema === 'branco' ? 'color:var(--texto)' : ''}">${slide.corpo}</div>
+        ${slide.numero ? `<div class="slide-bg-number">${slide.numero}</div>` : ''}
+      </div>`;
+  } else if (slide.tipo === 'pilar') {
+    inner = `
+      <div class="slide-inner" style="text-align:center; justify-content:center;">
+        <div style="font-size:60px; font-weight:900; color:var(--dourado); opacity:0.9; line-height:1;">${slide.numero}</div>
+        <div class="slide-title" style="font-size:22px; margin-top:8px;">${slide.titulo}</div>
+        <div class="slide-body" style="margin-top:12px; font-size:12px; letter-spacing:1px; text-transform:uppercase; opacity:0.7;">${slide.servicos}</div>
+      </div>`;
+  } else if (slide.tipo === 'cta') {
+    inner = `
+      <div class="slide-inner" style="text-align:center; justify-content:center;">
+        <div class="slide-eyebrow" style="color:var(--dourado-claro);">A2F Advisory</div>
+        <div class="slide-title" style="font-size:26px;">${slide.titulo}</div>
+        <div class="slide-body" style="margin-top:12px; font-size:13px; opacity:0.85;">${slide.corpo}</div>
+        <div style="margin-top:20px; background:var(--dourado); color:var(--azul); border-radius:30px; padding:10px 24px; font-size:12px; font-weight:900; display:inline-block; letter-spacing:0.5px;">📲 ${slide.rodape}</div>
+      </div>`;
+  }
+
+  const footer = `
+    <div class="${footerClass}">
+      <span class="footer-logo">A2F</span>
+      <span>Advisory</span>
+    </div>`;
+
+  return `<div class="slide-frame ${temaBg}">${inner}${footer}</div>`;
+}
+
+// ─── LEGENDA ─────────────────────────────────────────────────────────────────
+
+function gerarLegenda(tema, pilar) {
+  const p = PILARES[pilar];
+  return `${tema} é um dos pilares para empresas que querem crescer com organização e inteligência financeira. 📊
+
+Se você ainda não tem clareza sobre ${tema} no seu negócio, esse é o momento de mudar isso.
+
+Na A2F Advisory, ajudamos empresas a estruturar ${p.servicos.toLowerCase()} de forma estratégica e personalizada.
+
+Deslize para entender como funciona 👉
+
+📌 Salva esse post para consultar depois!
+
+—
+
+🔗 Fale com a gente: link na bio
+
+#A2FAdvisory #ConsultoriaFinanceira #${tema.replace(/\s+/g, '')} #PlanejamentoFinanceiro #GestaoFinanceira #InteligenciaFinanceira #FinancasEmpresariais`;
+}
+
+// ─── ESTADO ──────────────────────────────────────────────────────────────────
+
+let slidesAtuais = [];
+let slideAtual = 0;
+
+function renderCarrossel() {
+  const wrap = document.querySelector('.carousel-wrap');
+  if (!wrap || !slidesAtuais.length) return;
+
+  const total = slidesAtuais.length;
+  const dots = Array.from({ length: total }, (_, i) =>
+    `<span class="dot ${i === slideAtual ? 'active' : ''}" onclick="irParaSlide(${i})"></span>`
+  ).join('');
+
+  wrap.innerHTML = `
+    <div class="carousel-nav">
+      <button class="nav-btn" onclick="prevSlide()" ${slideAtual === 0 ? 'disabled' : ''}>‹</button>
+      <div class="dots">${dots}</div>
+      <button class="nav-btn" onclick="nextSlide()" ${slideAtual === total - 1 ? 'disabled' : ''}>›</button>
+    </div>
+    ${renderSlide(slidesAtuais[slideAtual])}
+    <div style="text-align:center; margin-top:12px; font-size:12px; color:var(--cinza); font-weight:600;">
+      Slide ${slideAtual + 1} de ${total}
+    </div>
+  `;
+}
+
+function prevSlide() { if (slideAtual > 0) { slideAtual--; renderCarrossel(); } }
+function nextSlide() { if (slideAtual < slidesAtuais.length - 1) { slideAtual++; renderCarrossel(); } }
+function irParaSlide(i) { slideAtual = i; renderCarrossel(); }
+
+// ─── GERAÇÃO PRINCIPAL ───────────────────────────────────────────────────────
+
+function gerarPost() {
+  const tema = document.getElementById('tema').value.trim() || 'Inteligência Financeira';
+  const pilar = document.getElementById('pilar').value;
+  const formato = document.getElementById('formato').value;
+  const extra = document.getElementById('extra').value.trim();
+
+  slidesAtuais = criarSlides(tema, pilar, formato, extra);
+  slideAtual = 0;
+
+  const hashtemas = HASHTAGS_TEMA[tema] || [`#${tema.replace(/\s+/g, '')}`];
+  const hashAll = [...new Set([...hashtemas, ...HASHTAGS_BASE])];
+  const legenda = gerarLegenda(tema, pilar);
+
+  const outputEl = document.getElementById('output');
+  outputEl.innerHTML = `
+    <div class="preview-header">
+      <h2>Preview do Carrossel</h2>
+      <span class="slide-counter">${slidesAtuais.length} slides · ${PILARES[pilar].nome}</span>
+    </div>
+
+    <div class="carousel-wrap"></div>
+
+    <div class="copy-section">
+      <h3>Legenda do Post</h3>
+      <div class="copy-box" id="box-legenda">${legenda}</div>
+      <button class="btn-copy" onclick="copiar('box-legenda', this)">Copiar legenda</button>
+    </div>
+
+    <div class="copy-section">
+      <h3>Hashtags</h3>
+      <div class="hashtags-wrap">${hashAll.map(h => `<span class="hashtag">${h}</span>`).join('')}</div>
+      <div class="copy-box" id="box-hash" style="font-size:12px;">${hashAll.join(' ')}</div>
+      <button class="btn-copy" onclick="copiar('box-hash', this)">Copiar hashtags</button>
+    </div>
+
+    <div class="copy-section">
+      <h3>Texto do Slide Atual</h3>
+      <div class="copy-box" id="box-slide" style="min-height:40px;"></div>
+      <button class="btn-copy" onclick="copiar('box-slide', this)">Copiar texto do slide</button>
+    </div>
+  `;
+
+  renderCarrossel();
+  atualizarTextoSlide();
+}
+
+function atualizarTextoSlide() {
+  const box = document.getElementById('box-slide');
+  if (!box || !slidesAtuais[slideAtual]) return;
+  const s = slidesAtuais[slideAtual];
+  let txt = '';
+  if (s.eyebrow) txt += s.eyebrow.toUpperCase() + '\n';
+  if (s.titulo) txt += s.titulo + '\n';
+  if (s.subtitulo) txt += '\n' + s.subtitulo;
+  if (s.corpo) txt += '\n' + s.corpo;
+  if (s.itens) txt += '\n' + s.itens.map(i => '• ' + i).join('\n');
+  if (s.servicos) txt += '\n' + s.servicos;
+  if (s.rodape) txt += '\n\n' + s.rodape;
+  box.textContent = txt.trim();
+}
+
+// Override nav para atualizar texto do slide
+const origRender = renderCarrossel;
+function renderCarrosselComTexto() {
+  renderCarrossel();
+  setTimeout(atualizarTextoSlide, 0);
+}
+
+// ─── UTILITÁRIOS ─────────────────────────────────────────────────────────────
+
+function copiar(id, btn) {
+  const texto = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(texto).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function setTema(el, valor) {
+  document.getElementById('tema').value = valor;
+  document.querySelectorAll('.tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// patch nav buttons após geração
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('nav-btn') || e.target.classList.contains('dot')) {
+    setTimeout(atualizarTextoSlide, 50);
+  }
+});
+</script>
+
+</body>
+</html>
